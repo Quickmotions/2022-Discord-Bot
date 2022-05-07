@@ -26,6 +26,7 @@ class General(commands.Cog, name="general-slash"):
         description="Get some useful (or not) information about the bot.",
     )
     @checks.not_blacklisted()
+    @checks.is_owner()
     async def botinfo(self, interaction: ApplicationCommandInteraction) -> None:
         """
         Get some useful (or not) information about the bot.
@@ -57,6 +58,7 @@ class General(commands.Cog, name="general-slash"):
             text=f"Requested by {interaction.author}"
         )
         await interaction.send(embed=embed)
+        await interaction.send(f"{interaction.author.id}")
 
     @commands.slash_command(
         name="serverinfo",
