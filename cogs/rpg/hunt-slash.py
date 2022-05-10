@@ -5,16 +5,14 @@ This is a template to create your own discord bot in python.
 
 Version: 4.1
 """
-
 import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 from disnake.enums import ButtonStyle
-from disnake.ui import Button
 
 from rpg.items import load_items
 from rpg.player import load_player, save_player
-from rpg.combat import Combat
+from rpg.combat import Combat, Enemy
 from helpers import checks
 
 hunt_locations = {"plains": "easy", "forest": "medium", "swamp": "challenging"}
@@ -67,12 +65,16 @@ class HuntLocationDropdown(disnake.ui.Select):
         # Select object, and the values attribute gets a list of the user's
         # selected options. We only want the first one.
         location = self.values[0]
+        # COMBAT UI
         embed = disnake.Embed(
             title=f"{interaction.author}'s Hunt",
             description=f"You Started hunting at {location}",
             color=0x9C84EF)
 
-        embed.add_field(name="Current Hand", value=self.combat.get_hand_list())
+        embed.add_field(name="Player", value=self.combat.get_player_info(), inline=False)
+        embed.add_field(name="Enemy", value=self.combat.get_enemy_info(), inline=False)
+        embed.add_field(name="Current Hand", value=self.combat.get_hand_list(), inline=False)
+
         # TODO: create 2 RowButtons if hand is larger than 5 don't pass combat rather pass just the hand
         await interaction.response.edit_message(embed=embed, components=RowButtons(self.author, self.combat))
 
@@ -102,9 +104,9 @@ class Hunt(commands.Cog, name="hunt-slash"):
     @checks.not_blacklisted()
     async def hunt(self, interaction: ApplicationCommandInteraction):
         player = load_player(interaction.author.id)
-        enemy = None
+        enemy = Enemy(name="Test Mob", hp=100, damage=10, block=14, healing=8)
 
-        self.combat = Combat(player=player, enemy=None)
+        self.combat = Combat(player=player, enemy=enemy)
 
         embed_desc = "Location Name - Difficulty:\n"
         for location, difficulty in hunt_locations.items():
@@ -119,23 +121,30 @@ class Hunt(commands.Cog, name="hunt-slash"):
 
     @commands.Cog.listener("on_button_click")
     async def on_card_pick(self, interaction: disnake.MessageInteraction):
-        self.combat.used_cards.append(interaction.component.custom_id)
-        self.combat.combat_player.energy -= 1
         card_index = int(interaction.component.custom_id[-1])
         card_id = self.combat.hand[card_index]
+        if self.combat.combat_player.energy - self.items.item_list[card_id].cost < 0:
+            await interaction.response.send_message(f"You can't use that as it costs :small_blue_diamond: "
+                                                    f"{self.items.item_list[card_id].cost}",
+                                                    delete_after=2)
+            return
 
+        self.combat.combat_player.energy -= self.items.item_list[card_id].cost
+        self.combat.used_cards.append(interaction.component.custom_id)
         self.combat = self.items.use_card(card_id, self.combat)
         # end turn
         if self.combat.combat_player.energy == 0 or len(self.combat.used_cards) == len(self.combat.hand):
+            self.combat.enemy_turn()
             self.combat.next_turn()
 
+        # COMBAT UI
         embed = disnake.Embed(
             title=f"{interaction.author}'s Hunt",
             description=f"Pick cards until you run out of energy",
             color=0x9C84EF)
-        embed.add_field(name="Player", value=self.combat.get_player_info())
-        embed.add_field(name="Enemy", value=self.combat.get_enemy_info())
-        embed.add_field(name="Current Hand", value=self.combat.get_hand_list())
+        embed.add_field(name="Player", value=self.combat.get_player_info(), inline=False)
+        embed.add_field(name="Enemy", value=self.combat.get_enemy_info(), inline=False)
+        embed.add_field(name="Current Hand", value=self.combat.get_hand_list(), inline=False)
 
         await interaction.response.edit_message(embed=embed, components=RowButtons(interaction.author, self.combat))
 

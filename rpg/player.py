@@ -194,68 +194,6 @@ class Player:
         return total_active_stats
 
 
-class PlayerCombat:
-    def __init__(self, player: Player):
-        self.user_id: int = player.user_id
-        self.player = player
-
-        # skills
-        self.skill_health = player.skills.level["health"]
-        self.skill_strength = player.skills.level["strength"]
-        self.skill_block = player.skills.level["block"]
-        self.skill_magic = player.skills.level["magic"]
-        self.skill_agility = player.skills.level["agility"]
-        self.skill_healing = player.skills.level["healing"]
-        self.skill_dodge = player.skills.level["dodge"]
-
-        self.hp_max: int = round(((self.skill_health * 0.15) + 1) * 100)  # 15% for every lvl of health
-        self.hp: int = self.hp_max
-        self.energy_max: int = 3
-        self.energy: int = self.energy_max
-        self.block = 0
-
-        # cards
-        self.deck = player.deck
-        self.discard = {}
-
-        self.gained_gold: int = 0
-        self.gained_xp: int = 0
-
-    def draw_hand(self, hand_size: int = 5):
-        """
-        :hand: a list of :param hand_size: cards
-        :self.deck.cards: full deck
-        :self.discard: dict of cards to remove from deck
-        """
-        hand = []
-        for _ in range(hand_size):
-            deck = self.deck_list()
-            if len(deck) == 0:
-                # reshuffle discard back into deck
-                self.discard = {}
-                deck = self.deck_list()
-            # select a random card from current deck
-            random_card = random.choice(deck)
-            # add selected card into discard
-            if random_card not in self.discard:
-                self.discard[random_card] = 0
-            self.discard[random_card] += 1
-
-            hand.append(random_card)
-        return hand
-
-    def deck_list(self) -> list[str]:
-        """returns a list of card id in deck with discarded cards removed"""
-        deck = []
-        for card, amount in self.deck.cards.items():
-            for _ in range(amount):
-                deck.append(card)
-        for card, amount in self.discard.items():
-            for _ in range(amount):
-                deck.remove(card)
-        return deck
-
-
 def check_for_missing(player_data: Player) -> Player:
     """
     Goes through the player objects attributes and

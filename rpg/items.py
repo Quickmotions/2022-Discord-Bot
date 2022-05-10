@@ -81,7 +81,15 @@ class ItemManager:
         self.item_list[item.id] = item
 
     def use_card(self, card_id: str, combat):
-        # combat
+        skill_modifier = 0.15  # 15% more stat per lvl
+        card = self.item_list[card_id]
+        if card.card_type == "attack":
+            print(card.damage)
+            combat.enemy.take_damage(round(card.damage * (1 + (skill_modifier * combat.combat_player.skill_strength))))
+            combat.combat_player.block += round(card.block * (1 + (skill_modifier * combat.combat_player.skill_block)))
+            combat.combat_player.hp += round(card.healing * (1 + (skill_modifier * combat.combat_player.skill_healing)))
+            if combat.combat_player.hp > combat.combat_player.hp_max:
+                combat.combat_player.hp = combat.combat_player.hp_max
         return combat
 
 
