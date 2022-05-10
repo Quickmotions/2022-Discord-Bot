@@ -80,9 +80,9 @@ class ItemManager:
     def add(self, item: Item):
         self.item_list[item.id] = item
 
-    def use_card(self, card: Card, player, enemy):
+    def use_card(self, card_id: str, combat):
         # combat
-        pass
+        return combat
 
 
 def load_items() -> ItemManager:

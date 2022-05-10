@@ -222,29 +222,38 @@ class PlayerCombat:
         self.gained_xp: int = 0
 
     def draw_hand(self, hand_size: int = 5):
-        deck = self.deck.cards
-        # remove discard pile from deck
-        for card, amount in self.discard.items():
-            deck[card] -= amount
-        # draw hand
-        deck_as_list = []
-        for card, amount in deck.items():
-            for _ in range(amount):
-                deck_as_list.append(card)
+        """
+        :hand: a list of :param hand_size: cards
+        :self.deck.cards: full deck
+        :self.discard: dict of cards to remove from deck
+        """
         hand = []
         for _ in range(hand_size):
-            # put all discard back into deck if empty
-            if len(deck_as_list) == 0:
+            deck = self.deck_list()
+            if len(deck) == 0:
+                # reshuffle discard back into deck
                 self.discard = {}
-                deck_as_list = []
-                for card, amount in deck.items():
-                    for _ in range(amount):
-                        deck_as_list.append(card)
-            # draw card from deck
-            random_card = random.choice(deck_as_list)
+                deck = self.deck_list()
+            # select a random card from current deck
+            random_card = random.choice(deck)
+            # add selected card into discard
+            if random_card not in self.discard:
+                self.discard[random_card] = 0
+            self.discard[random_card] += 1
+
             hand.append(random_card)
-            deck_as_list.remove(random_card)
         return hand
+
+    def deck_list(self) -> list[str]:
+        """returns a list of card id in deck with discarded cards removed"""
+        deck = []
+        for card, amount in self.deck.cards.items():
+            for _ in range(amount):
+                deck.append(card)
+        for card, amount in self.discard.items():
+            for _ in range(amount):
+                deck.remove(card)
+        return deck
 
 
 def check_for_missing(player_data: Player) -> Player:
