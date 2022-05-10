@@ -1,6 +1,7 @@
 import os
 import pickle
 
+
 class Item:
     def __init__(self, id: str, name: str, category: str, description: str):
         """
@@ -79,6 +80,10 @@ class ItemManager:
     def add(self, item: Item):
         self.item_list[item.id] = item
 
+    def use_card(self, card: Card, player, enemy):
+        # combat
+        pass
+
 
 def load_items() -> ItemManager:
     items = ItemManager()
@@ -90,10 +95,7 @@ def load_items() -> ItemManager:
     return items
 
 
-
 def save_items(item_manager: ItemManager):
     for item_id, item in item_manager.item_list.items():
         with open(f"data/items/{item.category}/{item.id}.pkl", "wb") as pickle_file:
             pickle.dump(item, pickle_file)
-
-

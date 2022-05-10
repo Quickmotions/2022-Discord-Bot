@@ -5,6 +5,7 @@ import random
 from datetime import datetime
 
 from data.jobs.job_list import jobs
+from rpg.items import Card
 
 
 class Balance:
@@ -90,7 +91,7 @@ class Skills:
     def __init__(self):
         # combat
         stats = ["health", "strength", "block", "magic", "agility",
-                  "healing", "dodge", "mining", "woodcutting", "fishing"]
+                 "healing", "dodge", "mining", "woodcutting", "fishing"]
 
         self.level = {}
         self.xp = {}
@@ -138,6 +139,22 @@ class Party:
         self.members = {}
 
 
+class Deck:
+    def __init__(self):
+        self.cards: dict[str:int] = {}
+        self.load_starter_cards()
+        self.cards_amount = len(self.cards)
+        self.max_cards = 20
+        self.min_cards = 10
+
+    def load_starter_cards(self):
+        for _ in range(4):
+            self.cards["slash"] = 4
+            self.cards["defend"] = 4
+            self.cards["bash"] = 2
+            self.cards["bandage"] = 1
+
+
 class Player:
     def __init__(self, user_id: int):
         # user data
@@ -162,6 +179,9 @@ class Player:
         # party
         self.party = Party()
 
+        # cards
+        self.deck = Deck()
+
     def get_stats(self) -> dict[int]:
         """
         Calculates are returns the total active stats gained from both skill level
@@ -172,6 +192,59 @@ class Player:
             # adds skill level and equipment stat level to get total skill level
             total_active_stats[skill_name] = level + self.equipment.stats[skill_name]
         return total_active_stats
+
+
+class PlayerCombat:
+    def __init__(self, player: Player):
+        self.user_id: int = player.user_id
+        self.player = player
+
+        # skills
+        self.skill_health = player.skills.level["health"]
+        self.skill_strength = player.skills.level["strength"]
+        self.skill_block = player.skills.level["block"]
+        self.skill_magic = player.skills.level["magic"]
+        self.skill_agility = player.skills.level["agility"]
+        self.skill_healing = player.skills.level["healing"]
+        self.skill_dodge = player.skills.level["dodge"]
+
+        self.hp_max: int = round(((self.skill_health * 0.15) + 1) * 100)  # 15% for every lvl of health
+        self.hp: int = self.hp_max
+        self.energy_max: int = 3
+        self.energy: int = self.energy_max
+        self.block = 0
+
+        # cards
+        self.deck = player.deck
+        self.discard = {}
+
+        self.gained_gold: int = 0
+        self.gained_xp: int = 0
+
+    def draw_hand(self, hand_size: int = 5):
+        deck = self.deck.cards
+        # remove discard pile from deck
+        for card, amount in self.discard.items():
+            deck[card] -= amount
+        # draw hand
+        deck_as_list = []
+        for card, amount in deck.items():
+            for _ in range(amount):
+                deck_as_list.append(card)
+        hand = []
+        for _ in range(hand_size):
+            # put all discard back into deck if empty
+            if len(deck_as_list) == 0:
+                self.discard = {}
+                deck_as_list = []
+                for card, amount in deck.items():
+                    for _ in range(amount):
+                        deck_as_list.append(card)
+            # draw card from deck
+            random_card = random.choice(deck_as_list)
+            hand.append(random_card)
+            deck_as_list.remove(random_card)
+        return hand
 
 
 def check_for_missing(player_data: Player) -> Player:
@@ -187,7 +260,7 @@ def check_for_missing(player_data: Player) -> Player:
         if not hasattr(player_data, attr):
             setattr(player_data, attr, value)
         # if the attribute is a subclass then unpack this and test for missing attributes within
-        if not isinstance(value, int):
+        if not isinstance(value, object):
             for internal_attr, internal_value in value.__dict__.items():
                 # if the subclass is missing an attribute add it with the default value
                 if not hasattr(getattr(player_data, attr), internal_attr):
@@ -195,6 +268,7 @@ def check_for_missing(player_data: Player) -> Player:
                 # for all dictionaries inside sub classes it will check for missing keys and add them in as default
                 # this will make it so that when new skills are added to the game player data will be updated
                 if isinstance(internal_value, dict):
+
                     for dict_key, dict_value in internal_value.items():
                         if dict_key not in getattr(getattr(player_data, attr), internal_attr):
                             # add a new key with default value into the sub-classes dictionary
