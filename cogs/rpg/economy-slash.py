@@ -91,6 +91,29 @@ class Economy(commands.Cog, name="economy-slash"):
     @checks.not_blacklisted()
     async def baltop(self, interaction: ApplicationCommandInteraction):
         players = load_all_players()
+        player_bal = []
+        for player in players:
+            player_bal.append([player.username, player.balance.gold])
+        player_bal.sort(key=lambda x: x[1], reverse=True)
+        baltop_desc = ""
+        pages = []
+        array = 0
+        num = 1
+        for username, bal in player_bal:
+            if array == 9:
+                array = 0
+                pages.append(baltop_desc)
+                baltop_desc = ""
+            baltop_desc += f"**{num}** `{bal}` - {username}\n"
+            array += 1
+            num += 1
+        pages.append(baltop_desc)
+        # TODO: add paginator to show more pages of bal top listed in pages[]
+        embed = disnake.Embed(
+            title=f"Richest Users",
+            description=pages[0],
+            color=0x9C84EF)
+        await interaction.send(embed=embed)
 
 
 def setup(bot):

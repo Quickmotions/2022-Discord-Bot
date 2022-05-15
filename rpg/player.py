@@ -219,7 +219,7 @@ def check_for_missing(player_data: Player) -> Player:
     compares them to the default most updated player class.
     Missing attributes are then added with the default value
     """
-    default_data = Player(0000)
+    default_data = Player(0000, "test_player")
     # unpacks a updated default player objects attributes with default values
     for attr, value in default_data.__dict__.items():
         # if the player is missing an attribute add it with the default value
