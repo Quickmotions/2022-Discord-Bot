@@ -10,8 +10,6 @@ from rpg.combat import Combat
 if __name__ == '__main__':
     # player loading saving test
     player = load_player(482271768451612683)
-    player.inventory.items["test item"] = 12
-    player.inventory.items["fake item"] = 297776
     save_player(player)
 
     # player check for missing test
@@ -63,4 +61,13 @@ if __name__ == '__main__':
                    card_type="attack", rarity="common", damage=14, skill_type="strength"))
     items.add(Card(id="bandage", name="Bandage", description="Heal 8 (healing) Damage",
                    card_type="attack", rarity="common", healing=8, skill_type="healing"))
+    items.add(Material(id="lootbox", name="Daily Lootbox", description="Open for goodies"))
     save_items(items)
+
+
+
+    kerim = load_player(407967934447878166)
+    player.balance.gold += 10000000
+    kerim.balance.gold += 10000000
+    save_player(kerim)
+    save_player(player)

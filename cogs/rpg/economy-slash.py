@@ -11,7 +11,7 @@ from disnake.ext import commands
 from helpers import checks
 
 # Here we name the cog and create a new class for the cog.
-from rpg.player import load_player, save_player
+from rpg.player import load_player, save_player, load_all_players
 
 
 class Economy(commands.Cog, name="economy-slash"):
@@ -83,6 +83,15 @@ class Economy(commands.Cog, name="economy-slash"):
         await interaction.send(embed=embed)
         save_player(player)
         save_player(target)
+
+    @commands.slash_command(
+        name="baltop",
+        description="Lists the richest players",
+    )
+    @checks.not_blacklisted()
+    async def baltop(self, interaction: ApplicationCommandInteraction):
+        players = load_all_players()
+        print(players)
 
 
 def setup(bot):

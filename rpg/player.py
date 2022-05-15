@@ -42,7 +42,7 @@ class Job:
         self.xp += xp_earned
         while self.xp >= self.xp_needed:
             self.xp -= self.xp_needed
-            self.salary = self.salary + random.randint(10, 30)
+            self.salary = self.salary + random.randint(2, 5)
             self.xp_needed = round(self.xp_needed * 1.05)
             promotion = True
         # reset work
@@ -66,6 +66,7 @@ class Inventory:
         if item not in self.items:
             self.items[item] = 0
         self.items[item] += amount
+        self.clear_empty()
 
     def able_remove_item(self, item: str, amount: int = 1) -> bool:
         """
@@ -82,9 +83,11 @@ class Inventory:
 
     def clear_empty(self):
         """Removes all item keys from inventory if player has none of that item"""
+        new_inv = {}
         for item, amount in self.items.items():
-            if amount <= 0:
-                self.items.pop(item)
+            if amount > 0:
+                new_inv[item] = amount
+        self.items = new_inv
 
 
 class Skills:
@@ -101,6 +104,21 @@ class Skills:
             self.level[stat] = 0
             self.xp[stat] = 0
             self.xp_needed[stat] = 100
+
+    def add_xp(self, skill: str, amount: int):
+        self.xp[skill] += amount
+        while self.xp[skill] > self.xp_needed[skill]:
+            self.level[skill] += 1
+            self.xp[skill] -= self.xp_needed[skill]
+            self.xp_needed[skill] = round(self.xp_needed[skill] * 1.2)
+
+
+class Xp:
+    def __init__(self):
+        self.points = 0
+
+    def add_xp(self, amount: int):
+        self.points += amount
 
 
 class Equipment:
@@ -169,6 +187,7 @@ class Player:
 
         # skills
         self.skills = Skills()
+        self.xp = Xp()
 
         # job
         self.job = Job()
@@ -233,6 +252,14 @@ def load_player(user_id: int) -> Player:
         player = check_for_missing(player)
         return player
 
+def load_all_players() -> list[Player]:
+    """creates a default player data if missing, then loads the player data for specified user_id"""
+    players = []
+    for file in open(f"data/players"):
+        with open(f"data/players/{file}", "rb") as pickle_file:
+            player = pickle.load(pickle_file)
+            players.append(player)
+    return players
 
 def save_player(player_data: Player):
     with open(f"data/players/{player_data.user_id}/player_data.pkl", "wb") as pickle_file:

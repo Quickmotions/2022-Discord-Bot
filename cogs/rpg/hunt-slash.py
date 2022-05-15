@@ -23,6 +23,7 @@ class RowButtons(disnake.ui.ActionRow):
         super().__init__()
         self.author = author
         self.combat = combat
+        self.items = load_items()
         hand: list = combat.hand
         card_num = 0
         for card in hand:
@@ -35,6 +36,37 @@ class RowButtons(disnake.ui.ActionRow):
 
     async def interaction_check(self, inter: disnake.MessageInteraction):
         return inter.author == self.author
+
+    async def callback(self, interaction: disnake.MessageInteraction):
+        if interaction.author.id != self.combat.player.id:
+            await interaction.response.send_message("This is not your combat.", delete_after=2)
+            return
+        card_index = int(interaction.component.custom_id[-1])
+        card_id = self.combat.hand[card_index]
+        if self.combat.combat_player.energy - self.items.item_list[card_id].cost < 0:
+            await interaction.response.send_message(f"You can't use that as it costs :small_blue_diamond: "
+                                                    f"{self.items.item_list[card_id].cost}",
+                                                    delete_after=2)
+            return
+
+        self.combat.combat_player.energy -= self.items.item_list[card_id].cost
+        self.combat.used_cards.append(interaction.component.custom_id)
+        self.combat = self.items.use_card(card_id, self.combat)
+        # end turn
+        if self.combat.combat_player.energy == 0 or len(self.combat.used_cards) == len(self.combat.hand):
+            self.combat.enemy_turn()
+            self.combat.next_turn()
+
+        # COMBAT UI
+        embed = disnake.Embed(
+            title=f"{interaction.author}'s Hunt",
+            description=f"Pick cards until you run out of energy",
+            color=0x9C84EF)
+        embed.add_field(name="Player", value=self.combat.get_player_info(), inline=False)
+        embed.add_field(name="Enemy", value=self.combat.get_enemy_info(), inline=False)
+        embed.add_field(name="Current Hand", value=self.combat.get_hand_list(), inline=False)
+
+        await interaction.response.edit_message(embed=embed, components=RowButtons(interaction.author, self.combat))
 
 
 class HuntLocationDropdown(disnake.ui.Select):
@@ -119,34 +151,9 @@ class Hunt(commands.Cog, name="hunt-slash"):
         await interaction.send(embed=embed, view=HuntLocationDropdownView(interaction.author, player, self.combat))
         save_player(player)
 
-    @commands.Cog.listener("on_button_click")
-    async def on_card_pick(self, interaction: disnake.MessageInteraction):
-        card_index = int(interaction.component.custom_id[-1])
-        card_id = self.combat.hand[card_index]
-        if self.combat.combat_player.energy - self.items.item_list[card_id].cost < 0:
-            await interaction.response.send_message(f"You can't use that as it costs :small_blue_diamond: "
-                                                    f"{self.items.item_list[card_id].cost}",
-                                                    delete_after=2)
-            return
-
-        self.combat.combat_player.energy -= self.items.item_list[card_id].cost
-        self.combat.used_cards.append(interaction.component.custom_id)
-        self.combat = self.items.use_card(card_id, self.combat)
-        # end turn
-        if self.combat.combat_player.energy == 0 or len(self.combat.used_cards) == len(self.combat.hand):
-            self.combat.enemy_turn()
-            self.combat.next_turn()
-
-        # COMBAT UI
-        embed = disnake.Embed(
-            title=f"{interaction.author}'s Hunt",
-            description=f"Pick cards until you run out of energy",
-            color=0x9C84EF)
-        embed.add_field(name="Player", value=self.combat.get_player_info(), inline=False)
-        embed.add_field(name="Enemy", value=self.combat.get_enemy_info(), inline=False)
-        embed.add_field(name="Current Hand", value=self.combat.get_hand_list(), inline=False)
-
-        await interaction.response.edit_message(embed=embed, components=RowButtons(interaction.author, self.combat))
+    # @commands.Cog.listener("on_button_click")
+    # async def on_card_pick(self, interaction: disnake.MessageInteraction):
+    #     if interaction.component.custom_id[:3] == "card":
 
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.

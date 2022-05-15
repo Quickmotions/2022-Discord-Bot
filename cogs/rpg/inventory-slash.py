@@ -11,6 +11,7 @@ from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
 
 from helpers import checks
+from rpg.items import load_items
 from rpg.player import load_player
 
 
@@ -25,18 +26,22 @@ class Inventory(commands.Cog, name="inventory-slash"):
     @checks.not_blacklisted()
     async def inventory(self, interaction: ApplicationCommandInteraction):
         player = load_player(interaction.author.id)
+        items = load_items()
+        player.inventory.clear_empty()
+
+        total = 0
+        for item, amount in player.inventory.items.items():
+            total += amount
 
         embed = disnake.Embed(
             title=f"{interaction.author}'s Inventory",
-            description=f"Weight: {player.inventory.weight}/{player.inventory.max_weight}",
+            description=f"**Amount: {total}**\n--------------",
             color=0x9C84EF)
         for item, amount in player.inventory.items.items():
-            # TODO: remove temp weight
-            temp_weight = 3.0
-
+            print(item)
             embed.add_field(
-                name=f"{item} ─ {amount}",
-                value=f"Weight: {round(temp_weight * amount, 1)}",
+                name=f"{items.item_list[item].name} ─ {amount}",
+                value=f"`{item}`",
                 inline=True)
         await interaction.send(embed=embed)
 
@@ -58,9 +63,8 @@ class Inventory(commands.Cog, name="inventory-slash"):
             color=0x9C84EF)
 
         for skill in player.skills.level:
-            embed.add_field(name=f"{skill.capitalize()}",
-                            value=f"LVL: {player.skills.level[skill]}    "
-                                  f"XP: {player.skills.xp[skill]}/{player.skills.xp_needed[skill]}")
+            embed.add_field(name=f"{skill.capitalize()} - {player.skills.level[skill]}",
+                            value=f"**XP** ||{player.skills.xp[skill]}/{player.skills.xp_needed[skill]}||")
 
         await interaction.send(embed=embed)
 

@@ -169,4 +169,4 @@ class Combat:
 def create_hp_bar(hp, hp_max) -> str:
     red = round(hp / hp_max * 10)
     white = 10 - red
-    return f"{':red_square:' * red}|{':black_large_square:' * white}"
+    return f"{':red_square:' * red}{hp}{':black_large_square:' * white}"

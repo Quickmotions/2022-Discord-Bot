@@ -9,8 +9,10 @@ Version: 4.1
 import disnake
 from disnake import ApplicationCommandInteraction
 from disnake.ext import commands
+from discord.ext.commands import BucketType
 from disnake.enums import ButtonStyle
 
+from rpg.items import load_items
 from rpg.player import load_player, save_player
 from helpers import checks
 
@@ -40,7 +42,7 @@ class RowButtons(disnake.ui.View):
             started_working = self.player.job.start_time.strftime("%m/%d/%Y, %H:%M:%S")
             embed.add_field(name=f"Started Working", value=f"{started_working}", inline=False)
 
-            await interaction.response.edit_message(embed=embed, view=None)
+            await interaction.response.edit_message(embed=embed)
             save_player(self.player)
             return
 
@@ -53,11 +55,11 @@ class RowButtons(disnake.ui.View):
             description=f"Finished Working",
             color=0x9C84EF)
         embed.add_field(name=f"You Earned:", value=f":moneybag: {amount_earned}", inline=False)
-        embed.add_field(name=f"You Worked:", value=f"{mins_worked} minutes", inline=False)
+        embed.add_field(name=f"You Worked:", value=f"{round(mins_worked / 60, 2)} hours", inline=False)
         if promotion:
             embed.add_field(name=f"You Gained a Promotion:", value=f"New Salary: :moneybag: {self.player.job.salary}", inline=False)
 
-        await interaction.response.edit_message(embed=embed, view=None)
+        await interaction.response.edit_message(embed=embed)
         save_player(self.player)
 
 
@@ -91,6 +93,22 @@ class Work(commands.Cog, name="work-slash"):
 
         await interaction.send(embed=embed, view=RowButtons(interaction.author, player))
         save_player(player)
+
+    @commands.cooldown(1, 72000, BucketType.user)
+    @commands.slash_command(
+            name="daily",
+            description="Get a daily Lootbox",
+    )
+    @checks.not_blacklisted()
+    async def daily(self, interaction: ApplicationCommandInteraction):
+        player = load_player(interaction.author.id)
+        player.inventory.add_item(item="lootbox", amount=1)
+        save_player(player)
+        embed = disnake.Embed(
+            title=f"{interaction.author}'s Daily Reward",
+            description=f"You got 1x Daily Lootbox",
+            color=0x9C84EF)
+        await interaction.send(embed=embed)
 
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.

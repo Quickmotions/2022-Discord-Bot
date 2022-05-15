@@ -59,7 +59,7 @@ async def status_task() -> None:
     """
     Setup the game status task of the bot
     """
-    statuses = ["with you!", "with Krypton!", "with humans!"]
+    statuses = ["Minecraft", "with Fungus.", "with shrooms."]
     await bot.change_presence(activity=disnake.Game(random.choice(statuses)))
 
 
@@ -128,6 +128,16 @@ async def on_slash_command_error(interaction: ApplicationCommandInteraction, err
         )
         print("A blacklisted user tried to execute a command.")
         return await interaction.send(embed=embed, ephemeral=True)
+    elif isinstance(error, commands.CommandOnCooldown):
+        minutes, seconds = divmod(error.retry_after, 60)
+        hours, minutes = divmod(minutes, 60)
+        hours = hours % 24
+        embed = disnake.Embed(
+            title="Hey, please slow down!",
+            description=f"You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
+            color=0xE02B2B
+        )
+        await interaction.send(embed=embed, ephemeral=True)
     elif isinstance(error, commands.errors.MissingPermissions):
         embed = disnake.Embed(
             title="Error!",
