@@ -25,7 +25,7 @@ class Inventory(commands.Cog, name="inventory-slash"):
     )
     @checks.not_blacklisted()
     async def inventory(self, interaction: ApplicationCommandInteraction):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
         items = load_items()
         player.inventory.clear_empty()
 
@@ -51,7 +51,7 @@ class Inventory(commands.Cog, name="inventory-slash"):
     )
     @checks.not_blacklisted()
     async def skills(self, interaction: ApplicationCommandInteraction):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
 
         total_lvl = 0
         for skill, lvl in player.skills.level.items():

@@ -55,13 +55,6 @@ class RowButtons(disnake.ui.View):
                 color=0xE02B2B
             )
             return await interaction.send(embed=embed, ephemeral=True)
-        if self.target.balance.gold < amount:
-            embed = disnake.Embed(
-                title="Error!",
-                description=f"Target only has :moneybag: {self.target.balance.gold}",
-                color=0xE02B2B
-            )
-            return await interaction.send(embed=embed, ephemeral=True)
         # success
         if random.randint(1, 100) > 60:
             chance = random.randint(1, 100)
@@ -122,8 +115,8 @@ class Rob(commands.Cog, name="rob-slash"):
     )
     @checks.not_blacklisted()
     async def rob(self, interaction: ApplicationCommandInteraction, user: disnake.User):
-        target = load_player(user.id)
-        player = load_player(interaction.author.id)
+        target = load_player(user.id, user.name)
+        player = load_player(interaction.author.id, interaction.author.name)
 
         embed = disnake.Embed(
             title=f"{interaction.author}'s Rob Menu",

@@ -174,10 +174,10 @@ class Deck:
 
 
 class Player:
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int, username: str):
         # user data
         self.user_id = user_id
-
+        self.username = username
         # economy
         self.balance = Balance()
 
@@ -242,11 +242,11 @@ def check_for_missing(player_data: Player) -> Player:
     return player_data
 
 
-def load_player(user_id: int) -> Player:
+def load_player(user_id: int, username: str) -> Player:
     """creates a default player data if missing, then loads the player data for specified user_id"""
 
     if not player_exists(user_id):
-        register_user(user_id)
+        register_user(user_id, username)
     with open(f"data/players/{user_id}/player_data.pkl", "rb") as pickle_file:
         player = pickle.load(pickle_file)
         player = check_for_missing(player)
@@ -256,8 +256,8 @@ def load_player(user_id: int) -> Player:
 def load_all_players() -> list[Player]:
     """creates a default player data if missing, then loads the player data for specified user_id"""
     players = []
-    for file in open(f"data/players"):
-        with open(f"data/players/{file}", "rb") as pickle_file:
+    for user_id in os.listdir("data/players/"):
+        with open(f"data/players/{user_id}/player_data.pkl", "rb") as pickle_file:
             player = pickle.load(pickle_file)
             players.append(player)
     return players
@@ -268,13 +268,13 @@ def save_player(player_data: Player):
         pickle.dump(player_data, pickle_file)
 
 
-def register_user(user_id: int):
+def register_user(user_id: int, username: str):
     """
     registers a new player and creates default data for them then stores it in pickle file
     """
     if not player_exists(user_id):
         os.makedirs(f"data/players/{user_id}")
-        player_data = Player(user_id)
+        player_data = Player(user_id, username)
         # create and save pickle file
         with open(f"data/players/{user_id}/player_data.pkl", "wb") as pickle_file:
             pickle.dump(player_data, pickle_file)

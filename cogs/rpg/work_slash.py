@@ -73,7 +73,7 @@ class Work(commands.Cog, name="work-slash"):
     )
     @checks.not_blacklisted()
     async def work(self, interaction: ApplicationCommandInteraction):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
 
         # TODO: change choice to buttons which update the embed.
         # https://docs.disnake.dev/en/latest/api.html?highlight=button#disnake.ui.Button
@@ -101,7 +101,7 @@ class Work(commands.Cog, name="work-slash"):
     )
     @checks.not_blacklisted()
     async def daily(self, interaction: ApplicationCommandInteraction):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
         player.inventory.add_item(item="lootbox", amount=1)
         save_player(player)
         embed = disnake.Embed(

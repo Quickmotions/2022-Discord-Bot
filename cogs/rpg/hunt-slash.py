@@ -135,7 +135,7 @@ class Hunt(commands.Cog, name="hunt-slash"):
     )
     @checks.not_blacklisted()
     async def hunt(self, interaction: ApplicationCommandInteraction):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
         enemy = Enemy(name="Test Mob", hp=100, damage=10, block=14, healing=8)
 
         self.combat = Combat(player=player, enemy=enemy)

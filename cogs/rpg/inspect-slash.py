@@ -48,7 +48,7 @@ class Inspect(commands.Cog, name="inspect-slash"):
     @checks.not_blacklisted()
     async def use(self, interaction: ApplicationCommandInteraction, item_id: str):
         items = load_items()
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
         if item_id == "lootbox":
             if not player.inventory.able_remove_item("lootbox", 1):
                 embed = disnake.Embed(

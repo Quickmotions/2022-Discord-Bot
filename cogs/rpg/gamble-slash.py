@@ -84,7 +84,7 @@ class Gamble(commands.Cog, name="gamble-slash"):
     )
     @checks.not_blacklisted()
     async def coinflip(self, interaction: ApplicationCommandInteraction, amount: int):
-        player = load_player(interaction.author.id)
+        player = load_player(interaction.author.id, interaction.author.name)
 
         failure = None
         if amount <= 0:

@@ -31,7 +31,7 @@ class Economy(commands.Cog, name="economy-slash"):
         if user is None:
             user = interaction.user
 
-        player = load_player(user.id)
+        player = load_player(user.id, user.name)
 
         embed = disnake.Embed(
             title=f"{user.name}'s Balance",
@@ -46,8 +46,8 @@ class Economy(commands.Cog, name="economy-slash"):
     )
     @checks.not_blacklisted()
     async def pay(self, interaction: ApplicationCommandInteraction, user: disnake.User, amount: int):
-        player = load_player(interaction.author.id)
-        target = load_player(user.id)
+        player = load_player(interaction.author.id, interaction.author.name)
+        target = load_player(user.id, user.name)
 
         failure = None
         if amount <= 0:
@@ -91,7 +91,6 @@ class Economy(commands.Cog, name="economy-slash"):
     @checks.not_blacklisted()
     async def baltop(self, interaction: ApplicationCommandInteraction):
         players = load_all_players()
-        print(players)
 
 
 def setup(bot):
