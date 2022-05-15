@@ -252,6 +252,7 @@ def load_player(user_id: int) -> Player:
         player = check_for_missing(player)
         return player
 
+
 def load_all_players() -> list[Player]:
     """creates a default player data if missing, then loads the player data for specified user_id"""
     players = []
@@ -260,6 +261,7 @@ def load_all_players() -> list[Player]:
             player = pickle.load(pickle_file)
             players.append(player)
     return players
+
 
 def save_player(player_data: Player):
     with open(f"data/players/{player_data.user_id}/player_data.pkl", "wb") as pickle_file:
