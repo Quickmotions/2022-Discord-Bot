@@ -9,7 +9,7 @@ from rpg.combat import Combat
 # testing
 if __name__ == '__main__':
     # player loading saving test
-    player = load_player(482271768451612683)
+    player = load_player(482271768451612683, "Fungus")
     save_player(player)
 
     # player check for missing test
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     time_difference = now - start
 
     # job test
-    player = load_player(482271768451612683)
+    player = load_player(482271768451612683, "Fungus")
 
     player.job = Job()
     save_player(player)
@@ -63,11 +63,3 @@ if __name__ == '__main__':
                    card_type="attack", rarity="common", healing=8, skill_type="healing"))
     items.add(Material(id="lootbox", name="Daily Lootbox", description="Open for goodies"))
     save_items(items)
-
-
-
-    kerim = load_player(407967934447878166)
-    player.balance.gold += 10000000
-    kerim.balance.gold += 10000000
-    save_player(kerim)
-    save_player(player)
