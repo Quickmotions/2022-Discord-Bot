@@ -19,7 +19,7 @@ class PlayerCombat:
         self.skill_healing = player.skills.level["healing"]
         self.skill_dodge = player.skills.level["dodge"]
 
-        self.hp_max: int = round(((self.skill_health * 0.15) + 1) * 100)  # 15% for every lvl of health
+        self.hp_max: int = round(((self.skill_health * 0.15) + 1) * 20)  # 15% for every lvl of health
         self.hp: int = self.hp_max
         self.energy_max: int = 3
         self.energy: int = self.energy_max
@@ -77,7 +77,7 @@ class PlayerCombat:
 
 
 class Enemy:
-    def __init__(self, name: str = "Mob", hp: int = 1,
+    def __init__(self, name: str = "Mob", location: str = "plains", hp: int = 1,
                  damage: int = 0, block: int = 0, healing: int = 0,
                  ):
         self.name = name
@@ -87,14 +87,16 @@ class Enemy:
         self.block = block
         self.current_block = 0
         self.healing = healing
+        self.location = location
         self.options = []
         if self.damage > 0:
             self.options.append("damage")
         if self.block > 0:
             self.options.append("block")
-            print("added block")
         if self.healing > 0:
             self.options.append("healing")
+
+        self.next_attack = random.choice(self.options)
 
     def take_damage(self, damage: int):
         block_left = self.current_block - damage
@@ -105,8 +107,8 @@ class Enemy:
             self.current_block = 0
             self.hp -= damage
 
-    def pick_attack(self) -> str:
-        return random.choice(self.options)
+    def pick_attack(self):
+        self.next_attack = random.choice(self.options)
 
 
 class Combat:
@@ -135,16 +137,18 @@ class Combat:
         self.hand = self.combat_player.draw_hand()
 
     def enemy_turn(self):
-        atk = self.enemy.pick_attack()
-        if atk == "damage":
+        self.enemy.current_block = 0
+
+        if self.enemy.next_attack == "damage":
             self.combat_player.take_damage(self.enemy.damage)
-        if atk == "healing":
+        if self.enemy.next_attack == "healing":
             self.enemy.hp += self.enemy.healing
             if self.enemy.hp > self.enemy.hp_max:
                 self.enemy.hp = self.enemy.hp_max
-        if atk == "block":
+        if self.enemy.next_attack == "block":
             self.enemy.current_block = self.enemy.block
-            print("blocked", self.enemy.current_block)
+
+        self.enemy.pick_attack()
 
     def get_hand_list(self) -> str:
         items = load_items()
@@ -158,15 +162,33 @@ class Combat:
         return hand_desc
 
     def get_enemy_info(self) -> str:
-        return f"{create_hp_bar(self.enemy.hp, self.enemy.hp_max)}, " \
-               f"BLOCK{self.enemy.current_block}"
+        if self.enemy.next_attack == "damage":
+            attack = f":crossed_swords: Deal {self.enemy.damage} damage"
+        elif self.enemy.next_attack == "block":
+            attack = f":shield: Block {self.enemy.block} damage"
+        elif self.enemy.next_attack == "healing":
+            attack = f":mending_heart: Heal {self.enemy.healing} hp"
+        else:
+            attack = f"Nothing"
+
+        return f"--------- *{self.enemy.name}* --------- :shield: {self.enemy.current_block}\n" \
+               f"{create_hp_bar(self.enemy.hp, self.enemy.hp_max)}\n" \
+               f"--------- *Next Attack* ---------\n" \
+               f"{attack}"
 
     def get_player_info(self) -> str:
-        return f"{create_hp_bar(self.combat_player.hp, self.combat_player.hp_max)}, " \
-               f"BLOCK{self.combat_player.block}, "
+        return f"--------- *{self.player.username}* --------- :shield: {self.combat_player.block}\n" \
+               f"{create_hp_bar(self.combat_player.hp, self.combat_player.hp_max)}"
+
+    def check_win(self):
+        if self.combat_player.hp <= 0:
+            return "enemy"
+        if self.enemy.hp <= 0:
+            return "player"
+        return None
 
 
 def create_hp_bar(hp, hp_max) -> str:
     red = round(hp / hp_max * 10)
     white = 10 - red
-    return f"{':red_square:' * red}{hp}{':black_large_square:' * white}"
+    return f"{':red_square:' * red}{':black_large_square:' * white} ({hp})"

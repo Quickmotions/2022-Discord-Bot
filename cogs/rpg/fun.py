@@ -42,7 +42,7 @@ class Fun(commands.Cog, name="fun"):
     @checks.not_blacklisted()
     async def kerim(self, context: Context) -> None:
         await context.send(
-            "https://cdn.discordapp.com/attachments/855371424659013673/975469838900285530/IMG_1696_1.mov")
+            "https://cdn.discordapp.com/emojis/976480666877308928.webp?size=160&quality=lossless")
 
     @commands.command(
         name="harris",
@@ -105,7 +105,16 @@ class Fun(commands.Cog, name="fun"):
     @checks.not_blacklisted()
     async def aiden(self, context: Context) -> None:
         await context.send(
-            "https://cdn.discordapp.com/emojis/975543582649880626.webp?size=160&quality=lossless")
+            "https://cdn.discordapp.com/emojis/976161621019861063.webp?size=160&quality=lossless")
+
+    @commands.command(
+        name="andy",
+        description="This is a admin command.",
+    )
+    @checks.not_blacklisted()
+    async def andy(self, context: Context) -> None:
+        await context.send(
+            "https://cdn.discordapp.com/attachments/855371424659013673/976160066958929960/unknown.png")
 
 
 def setup(bot):
