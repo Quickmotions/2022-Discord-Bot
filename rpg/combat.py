@@ -78,8 +78,10 @@ class PlayerCombat:
 
 class Enemy:
     def __init__(self, name: str = "Mob", location: str = "plains", hp: int = 1,
-                 damage: int = 0, block: int = 0, healing: int = 0,
-                 ):
+                 damage: int = 0, block: int = 0, healing: int = 0, loot=None):
+        if loot is None:
+            loot = {}
+
         self.name = name
         self.hp_max = hp
         self.hp = self.hp_max
@@ -88,6 +90,7 @@ class Enemy:
         self.current_block = 0
         self.healing = healing
         self.location = location
+        self.loot = loot
         self.options = []
         if self.damage > 0:
             self.options.append("damage")
