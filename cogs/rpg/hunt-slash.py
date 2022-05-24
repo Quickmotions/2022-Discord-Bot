@@ -17,7 +17,7 @@ from rpg.player import load_player, save_player
 from rpg.combat import Combat, Enemy
 from helpers import checks
 
-hunt_locations = {"plains": "easy", "forest": "medium", "swamp": "challenging"}
+hunt_locations = {"plains": "easy", "forest": "medium", "crypt": "hard"}
 
 
 class CardButton(disnake.ui.Button):
